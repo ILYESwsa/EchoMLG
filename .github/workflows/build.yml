@@ -30,10 +30,12 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          packages: |
-            platforms;android-36
-            build-tools;36.0.0
-            ndk;27.0.12077973
+          accept-android-sdk-licenses: true
+
+      - name: Install Android SDK components
+        run: |
+          yes | sdkmanager --licenses || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;27.0.12077973"
 
       - name: Cache Gradle
         uses: actions/cache@v4
@@ -48,6 +50,14 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
+
+      - name: Create debug keystore
+        run: |
+          mkdir -p ~/.android
+          keytool -genkey -v -keystore ~/.android/debug.keystore \
+            -storepass android -alias androiddebugkey -keypass android \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
 
       - name: Build Universal Foss Debug APK
         run: ./gradlew :app:assembleUniversalFossDebug --no-daemon --stacktrace

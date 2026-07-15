@@ -1,3 +1,27 @@
 plugins {
-    `java-library`
+    id("com.android.library")
+    
+}
+
+android {
+    namespace = "com.music.echo.unison"
+    compileSdk = 36
+
+    defaultConfig {
+        minSdk = 26
+    }
+
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+dependencies {
+    
 }
