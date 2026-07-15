@@ -1,9 +1,12 @@
 package com.music.paxsenix
 
 object Paxsenix {
-    suspend fun getLyrics(id: String, duration: Long): Result<String> =
+    fun init(context: android.content.Context) {}
+
+    suspend fun getLyrics(title: String, artist: String, duration: Int, album: String?): Result<String> =
         Result.failure(NotImplementedError("paxsenix stub"))
-    suspend fun getAllLyrics(id: String, duration: Long, callback: (String) -> Unit) {
+
+    suspend fun getAllLyrics(title: String, artist: String, duration: Int, album: String?, callback: (String) -> Unit) {
         // No-op stub
     }
 }

@@ -1,9 +1,9 @@
 package com.music.lrclib
 
 object LrcLib {
-    suspend fun getLyrics(title: String, artist: String, duration: Long, album: String?): Result<String> =
+    suspend fun getLyrics(title: String, artist: String, duration: Int, album: String?): Result<String> =
         Result.failure(NotImplementedError("lrclib stub"))
-    suspend fun getAllLyrics(title: String, artist: String, duration: Long, album: String?, callback: (String) -> Unit) {
+    suspend fun getAllLyrics(title: String, artist: String, duration: Int, album: String?, callback: (String) -> Unit) {
         // No-op stub
     }
 }
