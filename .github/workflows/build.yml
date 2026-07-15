@@ -1,0 +1,86 @@
+name: Build Echo Foss Debug APK
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Universal Foss Debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platforms;android-36
+            build-tools;36.0.0
+            ndk;27.0.12077973
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.gradle/kotlin-daemon-session
+          key: echo-gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/libs.versions.toml') }}
+          restore-keys: |
+            echo-gradle-${{ runner.os }}-
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Build Universal Foss Debug APK
+        run: ./gradlew :app:assembleUniversalFossDebug --no-daemon --stacktrace
+
+      - name: Locate APK
+        id: locate
+        run: |
+          echo "Finding APK..."
+          find app/build/outputs/apk -name "*.apk" -type f
+          APK_PATH=$(find app/build/outputs/apk -name "*universal*foss*debug*.apk" -type f | head -1)
+          if [ -z "$APK_PATH" ]; then
+            APK_PATH=$(find app/build/outputs/apk -name "*.apk" -type f | head -1)
+          fi
+          echo "Found APK at: $APK_PATH"
+          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+          # Copy to a stable name for upload
+          cp "$APK_PATH" echo-foss-debug.apk
+          ls -la echo-foss-debug.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: echo-foss-debug-apk
+          path: echo-foss-debug.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Create GitHub Release on tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: echo-foss-debug.apk
+          generate_release_notes: true
+          name: Echo ${{ github.ref_name }}
+          draft: false
+          prerelease: false
